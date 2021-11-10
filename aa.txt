@@ -1,1 +1,1 @@
-https://storage.googleapis.com/plugins-community/grafana-worldmap-panel/release/0.3.3/grafana-worldmap-panel-0.3.3.zip
+https://raw.githubusercontent.com/wp-statistics/GeoLite2-City/master/GeoLite2-City.mmdb.gz
