@@ -1,1 +1,6 @@
-https://raw.githubusercontent.com/wp-statistics/GeoLite2-City/master/GeoLite2-City.mmdb.gz
+
+       add_field => [ "[geoip][coordinates]", "%{[geoip][longitude]}" ]
+       add_field => [ "[geoip][coordinates]", "%{[geoip][latitude]}" ]
+
+
+         "[geoip][coordinates]" => "float"
