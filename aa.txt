@@ -142,3 +142,33 @@ groups:
 https://www.python.org/ftp/python/3.6.15/Python-3.6.15.tgz
 
 https://github.com/prometheus/alertmanager/releases/download/v0.23.0/alertmanager-0.23.0.linux-amd64.tar.gz
+
+
+global: 
+  resolve_timeout: 5m　　　　　　　
+route:
+  group_by: ['alertname', 'name']
+  group_wait: 20s
+  group_interval: 30s
+  repeat_interval: 1h
+  receiver: robot
+
+  routes:
+  - receiver: 'robot'
+    continue: true
+    group_wait: 10s
+    match_re:
+      env: ".*"
+
+receivers:
+- name: 'robot'
+  webhook_configs:
+  - url: http://127.0.0.1:19000/robot/send
+    send_resolved: true
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'dev', 'instance']
