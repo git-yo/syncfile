@@ -84,3 +84,55 @@ MarkupSafe==1.1.1
 requests==2.24.0
 urllib3==1.25.9
 Werkzeug==1.0.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+groups:
+    - name: 黑盒探测
+      rules:
+      - alert: 站点连接异常
+        expr: probe_success != 1
+        for: 180s
+        labels:
+          severity: 'critical'
+        annotations:
+          summary: "当前站点连接失败"
+
+
+
+groups:
+    - name: 主机告警
+      rules:      
+      - alert: CPU使用率过高
+        expr: round((1 - avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) by (instance, env, name, group)) * 100, 0.1) > 85
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          description: "{{$labels.inatance}} CPU使用大于85%(目前使用:{{$value}}%)"
+  
+      - alert: 内存使用率过高
+        expr: round((1 - (node_memory_MemAvailable_bytes / (node_memory_MemTotal_bytes)))* 100, 0.1) > 85
+        for: 5m
+        labels:
+          severity: 'warning'
+        annotations:
+          description: "{{$labels.mountpoint }} 内存使用大于85%(目前使用:{{$value}}%)"
+ 
+      - alert: 磁盘使用率过高
+        expr: round(100-(node_filesystem_free_bytes{fstype=~"ext4|xfs",mountpoint!~"/etc/hostname|/etc/hosts|/etc/resolv.*"}/node_filesystem_size_bytes {fstype=~"ext4|xfs",mountpoint!~"/etc/hostname|/etc/hosts|/etc/resolv.*",env="t1"}*100), 0.1) > 85
+        for: 10s
+        labels:
+          severity: 'warning'
+        annotations:
+          description: "{{$labels.mountpoint }} 磁盘分区使用大于85%(目前使用:{{$value}}%)"
