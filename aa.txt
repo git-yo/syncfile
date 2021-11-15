@@ -1,1 +1,86 @@
-https://dlcdn.apache.org/maven/maven-3/3.8.3/binaries/apache-maven-3.8.3-bin.tar.gz
+import requests
+import time
+from flask import request, Flask
+from flask_script import Manager, Server
+
+app = Flask(__name__)
+manage = Manager(app)
+title_dict = {"firing": "告警",
+              "resolved": "恢复"}
+
+
+def send_msg(message):
+    headers = {"Content-Type": "text/plain"}
+    send_url = robot_url
+    send_data = {
+        "msgtype": "markdown",
+        "markdown": {
+            "content": f"{message['text']}"
+        }
+    }
+    res = requests.post(url=send_url, headers=headers, json=send_data)
+    print(res.text)
+
+
+@app.route("/robot/send", methods=["POST"])
+def prometheus_message():
+    request_data = request.get_json()
+    alert_name = request_data["commonLabels"]["alertname"]
+
+    title = "[{0}]: {1} \n".format(title_dict[request_data["status"]], alert_name)
+    msg = "{0} \n".format(m)
+
+    for alert_info in request_data["alerts"]:
+        tags_list = list([])
+        for k in alert_info["labels"]:
+            if k == "name":
+                tags_list.append("{0}: {1}".format(k, alert_info["labels"][k]))
+            else:
+                tags_list.append("{0}: {1}".format(k, alert_info["labels"][k]))
+
+        text = "
+               "{0} \n" \
+               "{1} \n" \
+               "> - {2}\n" \
+               "----- \n".format(
+                " \n ".join(tags_list),
+                "\n".join(["> - {0}: {1}".format(k, alert_info["annotations"][k]) for k in
+                           alert_info["annotations"]]), alert_info["startsAt"])
+
+        msg += text
+        d_message = {
+            "title": title
+        }
+        send_msg(d_message)
+    return "success"
+
+if __name__ == "__main__":
+    manage.add_command("runserver", Server(host="0.0.0.0", port=19000))
+    manage.run()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+certifi==2020.6.20
+chardet==3.0.4
+click==7.1.2
+Flask==1.1.2
+Flask-Script==2.0.6
+idna==2.10
+itsdangerous==1.1.0
+Jinja2==2.11.2
+MarkupSafe==1.1.1
+requests==2.24.0
+urllib3==1.25.9
+Werkzeug==1.0.1
