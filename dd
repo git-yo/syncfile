@@ -1,0 +1,153 @@
+# broker所属集群
+brokerClusterName = prod-rocketmq-cluster
+
+# broker 实列名称，主从关系的需要保持名称一致
+brokerName = broker-01
+
+# brokerId，必须是大等于0的整数，0表示Master，>0表示Slave
+brokerId = 0
+
+# 删除文件的时间点，默认为凌晨4点
+deleteWhen = 04
+
+# 文件保留时间，默认为48小时
+fileReservedTime = 48
+
+# commitLog每个文件的大小，默认大小1g
+mapedFileSizeCommitLog=1073741824
+
+# -ASYNC_MASTER 异步复制Master
+# -SYNC_MASTER  同步双写Master
+# -SLAVE
+brokerRole = ASYNC_MASTER
+
+# 刷盘方式
+# -ASYNC_FLUSH 异步刷盘
+# -SYNC_FLUSH 同步刷盘
+flushDiskType = ASYNC_FLUSH
+
+#NameSrv集群地址
+namesrvAddr=172.19.58.16:9876;172.19.58.17:9876;172.19.58.15:9876
+
+#broker对外服务的监听端口
+# Master设置为 10911
+# Slave设置为 10915
+listenPort=10911
+
+# 绑定IP
+brokerIP1=172.19.58.16
+
+# 在发送消息时，自动创建服务器不存在的 topic，默认创建的队列数。由于是 3 个 broker 节点，所以设置为 3
+defaultTopicQueueNums=3
+
+# 是否允许broker自动创建Topic，建议线下开启，线上关闭，默认【true】
+autoCreateTopicEnable = true
+
+# 是否允许broker自动创建订阅组，建议线下开启，线上关闭，默认【true】
+autoCreateSubscriptionGroup = true
+
+# store存储路径
+storePathRootDir=/data/rocketmq/data/store
+
+# commitLog存储路径
+storePathCommitLog=/data/rocketmq/data/store/commitlog
+
+# 检查物理文件磁盘空间
+diskMaxUsedSpaceRatio=88
+
+# 限制的消息大小
+maxMessageSize=65536
+flushCommitLogLeastPages=4
+flushConsumeQueueLeastPages=2
+flushCommitLogThoroughInterval=10000
+flushConsumeQueueThoroughInterval=60000
+checkTransactionMessageEnable=false
+
+# 发消息线程池数
+sendMessageThreadPoolNums=128
+
+# 拉取消息线程池数
+pullMessageThreadPoolNums=128
+
+
+
+
+
+
+
+
+
+
+
+
+
+# broker所属集群
+brokerClusterName = prod-rocketmq-cluster
+
+# broker 实列名称，主从关系的需要保持名称一致
+brokerName = broker-03
+
+# brokerId，必须是大等于0的整数，0表示Master，>0表示Slave
+brokerId = 1
+
+# 删除文件的时间点，默认为凌晨4点
+deleteWhen = 04
+
+# 文件保留时间，默认为48小时
+fileReservedTime = 48
+
+# commitLog每个文件的大小，默认大小1g
+mapedFileSizeCommitLog=1073741824
+
+# -ASYNC_MASTER 异步复制Master
+# -SYNC_MASTER  同步双写Master
+# -SLAVE
+brokerRole = SLAVE
+
+# 刷盘方式
+# -ASYNC_FLUSH 异步刷盘
+# -SYNC_FLUSH 同步刷盘
+flushDiskType = ASYNC_FLUSH
+
+#NameSrv集群地址
+namesrvAddr=172.19.58.16:9876;172.19.58.17:9876;172.19.58.15:9876
+
+#broker对外服务的监听端口
+# Master设置为 10911
+# Slave设置为 10915
+listenPort=10915
+
+# 绑定IP
+brokerIP1=172.19.58.16
+
+# 在发送消息时，自动创建服务器不存在的 topic，默认创建的队列数。由于是 3 个 broker 节点，所以设置为 3
+defaultTopicQueueNums=3
+
+# 是否允许broker自动创建Topic，建议线下开启，线上关闭，默认【true】
+autoCreateTopicEnable=true
+
+# 是否允许broker自动创建订阅组，建议线下开启，线上关闭，默认【true】
+autoCreateSubscriptionGroup=true
+
+# store存储路径
+storePathRootDir=/data/rocketmq/data/store
+
+# commitLog存储路径
+storePathCommitLog=/data/rocketmq/data/store/commitlog
+
+# 检查物理文件磁盘空间
+diskMaxUsedSpaceRatio=88
+
+# 限制的消息大小
+maxMessageSize=65536
+flushCommitLogLeastPages=4
+flushConsumeQueueLeastPages=2
+flushCommitLogThoroughInterval=10000
+flushConsumeQueueThoroughInterval=60000
+checkTransactionMessageEnable=false
+
+# 发消息线程池数
+sendMessageThreadPoolNums=128
+
+# 拉取消息线程池数
+pullMessageThreadPoolNums=128
