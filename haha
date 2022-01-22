@@ -1,0 +1,68 @@
+git clone https://github.com/apache/rocketmq-exporter
+cd rocketmq-exporter
+mvn clean install
+
+
+java -jar rocketmq-exporter-0.0.1-SNAPSHOT.jar --rocketmq.config.namesrvAddr="127.0.0.1:9876;"
+
+
+
+###
+# Sample prometheus rules/alerts for rocketmq.
+#
+###
+# Galera Alerts
+
+groups:
+- name: GaleraAlerts
+  rules:
+  - alert: 集群发送tps太高
+    expr: sum(rocketmq_producer_tps) by (cluster) >= 10
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.cluster}}'
+      summary: 集群发送tps太高
+  - alert: 集群发送tps太低
+    expr: sum(rocketmq_producer_tps) by (cluster) < 1
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.cluster}}'
+      summary: 集群发送tps太低
+  - alert: 集群消费tps太高
+    expr: sum(rocketmq_consumer_tps) by (cluster) >= 10
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.cluster}}'
+      summary: 集群消费tps太高
+  - alert: 集群消费tps太低
+    expr: sum(rocketmq_consumer_tps) by (cluster) < 1
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.cluster}}'
+      summary: 集群消费tps太低
+  - alert: ConsumerFallingBehind
+    expr: (sum(rocketmq_producer_offset) by (topic) - on(topic)  group_right  sum(rocketmq_consumer_offset) by (group,topic)) - ignoring(group) group_left sum (avg_over_time(rocketmq_producer_tps[5m])) by (topic)*5*60 > 0
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      description: 'consumer {{$labels.group}} on {{$labels.topic}} lag behind
+        and is falling behind (behind value {{$value}}).'
+      summary: consumer lag behind
+  - alert: 集群消费延时
+    expr: rocketmq_group_get_latency_by_storetime > 1000
+    for: 3m
+    labels:
+      severity: warning
+    annotations:
+      description: 'consumer {{$labels.group}} on {{$labels.broker}}, {{$labels.topic}} consume time lag behind message store time
+        and (behind value is {{$value}}).'
+      summary: message consumes time lag behind message store time too much 
