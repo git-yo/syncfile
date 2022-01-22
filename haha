@@ -48,15 +48,13 @@ groups:
     annotations:
       description: '{{$labels.cluster}}'
       summary: 集群消费tps太低
-  - alert: ConsumerFallingBehind
-    expr: (sum(rocketmq_producer_offset) by (topic) - on(topic)  group_right  sum(rocketmq_consumer_offset) by (group,topic)) - ignoring(group) group_left sum (avg_over_time(rocketmq_producer_tps[5m])) by (topic)*5*60 > 0
-    for: 3m
-    labels:
+  - alert: RocketMQ 存在消息积压
+    expr: (sum(irate(rocketmq_producer_offset[1m])) by (topic)  - on(topic) group_right sum(irate(rocketmq_consumer_offset[1m])) by (group,topic)) > 500
+    for: 5m
+    labels: 
       severity: warning
     annotations:
-      description: 'consumer {{$labels.group}} on {{$labels.topic}} lag behind
-        and is falling behind (behind value {{$value}}).'
-      summary: consumer lag behind
+      summary: RocketMQ (group={{ $labels.group }} topic={{ $labels.topic }})积压数 = {{ .Value }}
   - alert: 集群消费延时
     expr: rocketmq_group_get_latency_by_storetime > 1000
     for: 3m
