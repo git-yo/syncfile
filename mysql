@@ -1,0 +1,6 @@
+https://objects.githubusercontent.com/github-production-release-asset-2e65be/32075541/da61fa80-c1f3-11eb-8ada-b73911ec635c?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIWNJYAX4CSVEH53A%2F20220127%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20220127T081546Z&X-Amz-Expires=300&X-Amz-Signature=6c3d2dd9ba8bde4225b2c4d29c75057ee0d569af9e070f788ff85788cc2e8fa3&X-Amz-SignedHeaders=host&actor_id=51645139&key_id=0&repo_id=32075541&response-content-disposition=attachment%3B%20filename%3Dmysqld_exporter-0.13.0.linux-amd64.tar.gz&response-content-type=application%2Foctet-stream
+
+
+
+- targets: ['192.168.65.16:9104']
+  labels: {env: "t1", group: 'look', name: 't1-look-mysql-01', instance: "192.168.65.16"}
