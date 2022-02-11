@@ -1,0 +1,39 @@
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+sudo yum -y install consul
+
+mkdir -p /data/app/consul
+mkdir -p /data/logs/app/consul
+chown -R consul:consul /data/app/consul
+chown -R consul:consul /data/logs/app/consul
+
+
+cat > /usr/lib/systemd/system/consul.service <<\EOF
+[Unit]
+Description="HashiCorp Consul - A service mesh solution"
+Documentation=https://www.consul.io/
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty=/etc/consul.d/consul.hcl
+
+[Service]
+User=consul
+Group=consul
+ExecStart=/usr/bin/consul agent -server -bootstrap-expect=1 -ui -node=192.168.41.12 -bind=192.168.41.12 -datacenter=lookdoor-fat -client 0.0.0.0 -data-dir=/data/app/consul -log-file=/data/logs/app/consul/consul.log
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGTERM
+Restart=on-failure
+LimitNOFILE=65536
+
+[Install]
+WantedBy=multi-user.target
+
+EOF
+
+
+
+
+systemctl daemon-reload
+systemctl start consul
+systemctl status consul
