@@ -1,0 +1,212 @@
+## 1.下载安装
+
+```bash
+# 下载安装包
+wget https://releases.hashicorp.com/vault/1.9.3/vault_1.9.3_linux_amd64.zip
+
+# 解压包
+unzip vault_1.9.3_linux_amd64.zip
+
+mv vault /usr/local/sbin/
+
+mkdir -p /data/app/vault/{conf,data}
+useradd -s /sbin/nologin -M vault
+```
+
+## 2.生成配置文件
+
+```bash
+cat > /data/app/vault/conf/vault.hcl << /EOF
+cluster_addr  = "http://192.168.41.30:8201"
+api_addr      = "http://192.168.41.30:8200"
+disable_mlock = true
+ui = true
+
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  tls_disable = true
+}
+
+storage "raft" {
+  path    = "/data/app/vault/data"
+  node_id = "192.168.41.30"
+  
+  retry_join {
+    leader_api_addr         = "http://192.168.41.30:8200"
+  }
+
+  retry_join {
+    leader_api_addr         = "http://192.168.41.31:8200"
+  }
+  
+  retry_join {
+    leader_api_addr         = "http://192.168.41.32:8200"
+  }  
+  
+}
+EOF
+
+chown -R vault:vault /data/app/vault
+```
+
+## 3.配置systemd
+
+```bash
+cat > /usr/lib/systemd/system/vault.service << \EOF
+[Unit]
+Description="HashiCorp Vault - A tool for managing secrets"
+Documentation=https://www.vaultproject.io/docs/
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+User=vault
+Group=vault
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+NoNewPrivileges=yes
+ExecStart=/usr/local/sbin/vault server -config=/data/app/vault/conf/vault.hcl
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+
+[Install]
+WantedBy=multi-user.target
+EOF
+```
+
+## 4.启动服务
+
+```bash
+systemctl daemon-reload
+systemctl start vault
+systemctl status vault
+systemctl enable vault
+```
+
+## 5.初始化VAULT
+
+```bash
+# 保存前三个key和token, key是接下来解封使用， token是登录使用
+$ vault operator init -address=http://127.0.0.1:8200
+# 配置环境变量可以不用每次跟上-address=http://127.0.0.1:8200
+$ export VAULT_ADDR=http://127.0.0.1:8200  
+
+Unseal Key 1: Isj9nhDxEc5/v8u/xeZw4veCVFW+SIkEa6ueVdEozjWd
+Unseal Key 2: jBwNEjaKUMN7EnLAyB9NH6zzlE38J8uaCB3L+kvHfBE4
+Unseal Key 3: 0zLlmfUj+Q4B+q/v+/nxYFxABezLc2IjnTNuvdDqv0B9
+Unseal Key 4: 8HH958K5P+nYiO1lJ/ldMMBzs2p5hzs84fxs30sL3myC
+Unseal Key 5: pOjG0T0uWHvyZV3HrKqtd+vL8mfcDieox84dih1OZGzQ
+
+Initial Root Token: s.ZKIlbLJhe31zRWEM2zfg6xU9
+
+Vault initialized with 5 key shares and a key threshold of 3. Please securely
+distribute the key shares printed above. When the Vault is re-sealed,
+restarted, or stopped, you must supply at least 3 of these keys to unseal it
+before it can start servicing requests.
+
+Vault does not store the generated master key. Without at least 3 keys to
+reconstruct the master key, Vault will remain permanently sealed!
+
+It is possible to generate new unseal keys, provided you have a quorum of
+existing unseal keys shares. See "vault operator rekey" for more information.
+```
+
+## 6.解封VAULT
+
+```bash
+# 操作三次，每出现一次输入框就输入一个Key
+vault operator unseal -address=http://127.0.0.1:8200
+
+vault operator unseal -address=http://127.0.0.1:8200
+
+vault operator unseal -address=http://127.0.0.1:8200
+```
+
+## 7.访问地址
+
+```bash
+# 输入token即可访问
+http://192.168.41.30:8200/
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# 1.用root token 登录 
+vault login s.ZKIlbLJhe31zRWEM2zfg6xU9
+
+# 2.创建策略文件
+cat > sec-read.hcl << \EOF
+path "secrets/*" {
+  capabilities = ["read", "list"]
+}
+
+path "pro/*" {
+  capabilities = ["read", "list"]
+}
+
+path "uat/*" {
+  capabilities = ["read", "list"]
+}
+
+EOF
+
+# 3.检查配置
+vault policy fmt sec-read.hcl
+
+# 4.创建策略
+vault policy write sec-read sec-read.hcl
+
+# 5.创建token并授权
+vault token create -policy=sec-read
+Key                  Value
+---                  -----
+token                s.6XIXwzqsc1XoQzCWtL4BzJoB
+token_accessor       2IsSxFEEdvjCc4oCbPfNcbbY
+token_duration       768h
+token_renewable      true
+token_policies       ["default" "sec-read"]
+identity_policies    []
+policies             ["default" "sec-read"]
+
+
+# 删除token
+vault token revoke s.6XIXwzqsc1XoQzCWtL4BzJoB
+
+# 删除策略
+vault policy delete sec-read
+
+# 创建一个名为pro的KV类型secret engine
+vault secrets enable -path=pro kv
+
+
+
